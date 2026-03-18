@@ -4,10 +4,14 @@ export interface SessionData {
   step: string;
   data: {
     name?: string;
+    salonId?: number;
     barberId?: number;
     selectedDate?: string;
     selectedTime?: string;
     appointmentId?: number;
+    schedDay?: string;
+    schedStart?: string;
+    schedEnd?: string;
   };
 }
 

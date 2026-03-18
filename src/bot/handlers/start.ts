@@ -29,8 +29,15 @@ export async function startHandler(ctx: BotContext) {
 export function mainMenuKeyboard(lang: ReturnType<typeof t>, role: Role = Role.CLIENT) {
   const kb = new Keyboard();
 
-  if (role === Role.ADMIN || role === Role.BARBER) {
+  if (role === Role.ADMIN) {
     kb.text(lang.btnAdminPanel).row()
+      .text(lang.btnNewAppointment).row()
+      .text(lang.btnMyAppointments)
+      .text(lang.btnSettings);
+  } else if (role === Role.BARBER) {
+    kb.text(lang.btnAdminPanel).row()
+      .text(lang.btnMyAppointments).row()
+      .text(lang.btnSchedule).row()
       .text(lang.btnSettings);
   } else {
     kb.text(lang.btnNewAppointment)

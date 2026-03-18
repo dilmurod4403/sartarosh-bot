@@ -39,11 +39,23 @@ export async function authMiddleware(req: FastifyRequest, reply: FastifyReply) {
 
   const initData = req.headers["x-telegram-init-data"] as string;
 
+  const botToken = process.env.BOT_TOKEN!;
+
+  // Development rejimida initData bo'sh bo'lsa, admin user ishlatiladi
+  if (!initData && process.env.NODE_ENV === "development") {
+    const devUser = await prisma.user.findFirst({
+      where: { telegramId: "752634550" },
+      include: { salonUsers: true },
+    });
+    if (!devUser) return reply.status(401).send({ error: "Dev user not found" });
+    req.telegramUser = { id: 752634550, first_name: devUser.name };
+    req.dbUser = devUser as any;
+    return;
+  }
+
   if (!initData) {
     return reply.status(401).send({ error: "Unauthorized" });
   }
-
-  const botToken = process.env.BOT_TOKEN!;
 
   // Development rejimida validatsiyani o'tkazib yuborish mumkin
   if (process.env.NODE_ENV !== "development") {

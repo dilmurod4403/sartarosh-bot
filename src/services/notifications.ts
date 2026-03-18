@@ -9,6 +9,42 @@ export function setBotInstance(bot: any) {
   botInstance = bot;
 }
 
+export async function notifyBarberRescheduleAccepted(appointmentId: number) {
+  if (!botInstance) return;
+
+  const appt = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { client: true, barber: { include: { user: true } } },
+  });
+
+  if (!appt) return;
+
+  const date = dayjs(appt.startTime).format("DD.MM.YYYY");
+  const time = dayjs(appt.startTime).format("HH:mm");
+
+  await botInstance.api.sendMessage(
+    appt.barber.user.telegramId,
+    `✅ Mijoz yangi vaqtni qabul qildi!\n👤 ${appt.client.name}\n📅 ${date}, ${time}`
+  );
+}
+
+export async function notifyCancelledToClient(appointmentId: number, reason: string) {
+  if (!botInstance) return;
+
+  const appt = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { client: true },
+  });
+
+  if (!appt) return;
+
+  const clientLang = t(appt.client.language);
+  await botInstance.api.sendMessage(
+    appt.client.telegramId,
+    clientLang.appointmentCancelled(reason)
+  );
+}
+
 export async function notifyBarberNewAppointment(appointmentId: number) {
   if (!botInstance) return;
 

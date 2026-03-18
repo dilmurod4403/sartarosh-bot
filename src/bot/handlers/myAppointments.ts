@@ -3,15 +3,20 @@ import { Composer, InlineKeyboard } from "grammy";
 import { BotContext, SessionData } from "../types";
 import prisma from "../../utils/prisma";
 import { t } from "../../locales";
+import { notifyBarberRescheduleAccepted } from "../../services/notifications";
 import dayjs from "dayjs";
 import { AppointmentStatus } from "../../generated/prisma";
 
 const composer = new Composer<BotContext>();
 
-composer.hears([/📋/, /Mening zakazlarim/, /Мои записи/], async (ctx) => {
+composer.hears([/📋/, /Mening zakazlarim/, /Мои записи/], async (ctx, next) => {
   const telegramId = String(ctx.from!.id);
-  const user = await prisma.user.findUnique({ where: { telegramId } });
+  const user = await prisma.user.findUnique({
+    where: { telegramId },
+    include: { salonUsers: true },
+  });
   if (!user) return;
+  if (user.salonUsers[0]?.role === "BARBER") return next();
   const lang = t(user.language);
 
   const appointments = await prisma.appointment.findMany({
@@ -96,8 +101,9 @@ composer.callbackQuery(/^myappt:reschedule:(accept|decline):(\d+)$/, async (ctx)
       where: { id: appointmentId },
       data: { status: AppointmentStatus.CONFIRMED },
     });
+    await notifyBarberRescheduleAccepted(appointmentId);
     await ctx.answerCallbackQuery();
-    await ctx.editMessageText(lang.confirm);
+    await ctx.editMessageText("✅ Yangi vaqt tasdiqlandi!");
   } else {
     await prisma.appointment.update({
       where: { id: appointmentId },

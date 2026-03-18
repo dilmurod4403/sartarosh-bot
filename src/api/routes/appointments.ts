@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import prisma from "../../utils/prisma";
 import { AppointmentStatus, Role } from "../../generated/prisma";
+import { notifyCancelledToClient } from "../../services/notifications";
 import dayjs from "dayjs";
 
 export async function appointmentRoutes(app: FastifyInstance) {
@@ -78,11 +79,19 @@ export async function appointmentRoutes(app: FastifyInstance) {
 
     // Mijozga notification yuborish
     if (status === AppointmentStatus.CANCELLED && cancelReason) {
-      const { setBotInstance } = await import("../../services/notifications");
-      // notification yuboriladi
+      await notifyCancelledToClient(parseInt(id), cancelReason);
     }
 
     return updated;
+  });
+
+  // Bo'sh slotlar
+  app.get("/slots", async (req, reply) => {
+    const { barberId, date } = req.query as { barberId: string; date: string };
+    if (!barberId || !date) return reply.status(400).send({ error: "barberId and date required" });
+    const { getAvailableSlots } = await import("../../services/slots");
+    const slots = await getAvailableSlots(parseInt(barberId), date);
+    return slots;
   });
 
   // Bugungi statistika

@@ -3,6 +3,7 @@ export const ru = {
   askPhone: "Отправьте ваш номер телефона 📱",
   shareContact: "📱 Поделиться контактом",
   registered: "Регистрация завершена! Добро пожаловать 🎉",
+  chooseSalon: "Выберите салон:",
   chooseBarber: "Выберите барбера:",
   chooseDay: "Выберите день:",
   chooseTime: "Выберите свободное время:",
@@ -37,4 +38,6 @@ export const ru = {
   btnMyAppointments: "📋 Мои записи",
   btnSettings: "⚙️ Настройки",
   btnAdminPanel: "🛠 Admin panel",
+  btnSchedule: "🗓 Мой график",
+  btnMenu: "🏠 Главное меню",
 };

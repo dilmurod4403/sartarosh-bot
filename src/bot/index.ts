@@ -21,6 +21,8 @@ export function createBot(token: string) {
   );
 
   bot.command("start", startHandler);
+  bot.command("menu", startHandler);
+  bot.hears(["🏠 Bosh menyu", "🏠 Главное меню"], startHandler);
   bot.use(registrationHandler);
   bot.use(adminPanelHandler);
   bot.use(appointmentHandler);

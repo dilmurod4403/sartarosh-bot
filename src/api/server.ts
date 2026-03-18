@@ -5,6 +5,7 @@ import path from "path";
 import { appointmentRoutes } from "./routes/appointments";
 import { scheduleRoutes } from "./routes/schedule";
 import { barberRoutes } from "./routes/barbers";
+import { salonRoutes } from "./routes/salons";
 import { authMiddleware } from "./middleware/auth";
 
 export async function createServer() {
@@ -22,6 +23,11 @@ export async function createServer() {
     root: publicDir,
     prefix: "/",
     decorateReply: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
+    },
   });
 
   // Health check (auth kerak emas)
@@ -33,6 +39,7 @@ export async function createServer() {
   await app.register(appointmentRoutes, { prefix: "/api" });
   await app.register(scheduleRoutes, { prefix: "/api" });
   await app.register(barberRoutes, { prefix: "/api" });
+  await app.register(salonRoutes, { prefix: "/api" });
 
   return app;
 }

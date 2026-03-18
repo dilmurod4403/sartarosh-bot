@@ -21,7 +21,11 @@ createServer().then((app) => {
 });
 
 bot.start({
-  onStart: (info) => {
+  onStart: async (info) => {
     console.log(`✅ Bot started: @${info.username}`);
+    await bot.api.setMyCommands([
+      { command: "start", description: "Botni ishga tushirish" },
+      { command: "menu", description: "🏠 Bosh menyuga qaytish" },
+    ]);
   },
 });

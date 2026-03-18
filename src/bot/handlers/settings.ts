@@ -27,12 +27,14 @@ composer.callbackQuery(/^settings:lang:(UZ|RU)$/, async (ctx) => {
   const user = await prisma.user.update({
     where: { telegramId },
     data: { language: lang },
+    include: { salonUsers: true },
   });
 
   await ctx.answerCallbackQuery();
   const l = t(user.language);
+  const role = user.salonUsers[0]?.role;
   await ctx.editMessageText(l.settingsSaved);
-  await ctx.reply(l.menu, { reply_markup: mainMenuKeyboard(l) });
+  await ctx.reply(l.menu, { reply_markup: mainMenuKeyboard(l, role) });
 });
 
 export const settingsHandler = composer;

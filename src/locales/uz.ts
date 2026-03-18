@@ -3,6 +3,7 @@ export const uz = {
   askPhone: "Telefon raqamingizni yuboring 📱",
   shareContact: "📱 Kontaktni ulashish",
   registered: "Ro'yxatdan o'tdingiz! Xush kelibsiz 🎉",
+  chooseSalon: "Salonni tanlang:",
   chooseBarber: "Sartaroshni tanlang:",
   chooseDay: "Kunni tanlang:",
   chooseTime: "Bo'sh vaqtni tanlang:",
@@ -37,4 +38,6 @@ export const uz = {
   btnMyAppointments: "📋 Mening zakazlarim",
   btnSettings: "⚙️ Sozlamalar",
   btnAdminPanel: "🛠 Admin panel",
+  btnSchedule: "🗓 Mening jadvalim",
+  btnMenu: "🏠 Bosh menyu",
 };

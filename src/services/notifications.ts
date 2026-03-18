@@ -1,11 +1,13 @@
-import { InlineKeyboard } from "grammy";
+import { InlineKeyboard, Bot, Context } from "grammy";
 import prisma from "../utils/prisma";
 import { t } from "../locales";
 import dayjs from "dayjs";
+import logger from "../utils/logger";
+import { sendAdminAlert } from "./adminNotifier";
 
-let botInstance: any = null;
+let botInstance: Bot<Context> | null = null;
 
-export function setBotInstance(bot: any) {
+export function setBotInstance(bot: Bot<Context>) {
   botInstance = bot;
 }
 
@@ -22,10 +24,23 @@ export async function notifyBarberRescheduleAccepted(appointmentId: number) {
   const date = dayjs(appt.startTime).format("DD.MM.YYYY");
   const time = dayjs(appt.startTime).format("HH:mm");
 
-  await botInstance.api.sendMessage(
-    appt.barber.user.telegramId,
-    `✅ Mijoz yangi vaqtni qabul qildi!\n👤 ${appt.client.name}\n📅 ${date}, ${time}`
-  );
+  try {
+    await botInstance.api.sendMessage(
+      appt.barber.user.telegramId,
+      `✅ Mijoz yangi vaqtni qabul qildi!\n👤 ${appt.client.name}\n📅 ${date}, ${time}`
+    );
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    logger.error(
+      { error: error.message, appointmentId },
+      "notifyBarberRescheduleAccepted: sendMessage xatosi"
+    );
+    await sendAdminAlert(
+      "notifyBarberRescheduleAccepted: sendMessage xatosi",
+      error,
+      { appointmentId, barberId: appt.barber.user.telegramId }
+    );
+  }
 }
 
 export async function notifyCancelledToClient(appointmentId: number, reason: string) {
@@ -39,10 +54,23 @@ export async function notifyCancelledToClient(appointmentId: number, reason: str
   if (!appt) return;
 
   const clientLang = t(appt.client.language);
-  await botInstance.api.sendMessage(
-    appt.client.telegramId,
-    clientLang.appointmentCancelled(reason)
-  );
+  try {
+    await botInstance.api.sendMessage(
+      appt.client.telegramId,
+      clientLang.appointmentCancelled(reason)
+    );
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    logger.error(
+      { error: error.message, appointmentId },
+      "notifyCancelledToClient: sendMessage xatosi"
+    );
+    await sendAdminAlert(
+      "notifyCancelledToClient: sendMessage xatosi",
+      error,
+      { appointmentId, clientId: appt.client.telegramId }
+    );
+  }
 }
 
 export async function notifyBarberNewAppointment(appointmentId: number) {
@@ -73,9 +101,22 @@ export async function notifyBarberNewAppointment(appointmentId: number) {
     `📞 Tel: ${appt.client.phone ?? "Noma'lum"}\n` +
     `🕐 Vaqt: ${date}, ${time}`;
 
-  await botInstance.api.sendMessage(appt.barber.user.telegramId, text, {
-    reply_markup: keyboard,
-  });
+  try {
+    await botInstance.api.sendMessage(appt.barber.user.telegramId, text, {
+      reply_markup: keyboard,
+    });
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    logger.error(
+      { error: error.message, appointmentId },
+      "notifyBarberNewAppointment: sendMessage xatosi"
+    );
+    await sendAdminAlert(
+      "notifyBarberNewAppointment: sendMessage xatosi",
+      error,
+      { appointmentId, barberId: appt.barber.user.telegramId }
+    );
+  }
 
   await prisma.notification.create({
     data: {
@@ -110,14 +151,27 @@ export async function sendReminderNotification(
       ? clientLang.reminder1h(time)
       : clientLang.reminder24h(date, time);
 
-  // Mijozga
-  await botInstance.api.sendMessage(appt.client.telegramId, message);
+  try {
+    // Mijozga
+    await botInstance.api.sendMessage(appt.client.telegramId, message);
 
-  // Sartaroshga ham 1 soat oldin eslatma
-  if (type === "1H") {
-    await botInstance.api.sendMessage(
-      appt.barber.user.telegramId,
-      `⏰ ${appt.client.name} — ${time} da keladi`
+    // Sartaroshga ham 1 soat oldin eslatma
+    if (type === "1H") {
+      await botInstance.api.sendMessage(
+        appt.barber.user.telegramId,
+        `⏰ ${appt.client.name} — ${time} da keladi`
+      );
+    }
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    logger.error(
+      { error: error.message, appointmentId, type },
+      "sendReminderNotification: sendMessage xatosi"
+    );
+    await sendAdminAlert(
+      "sendReminderNotification: sendMessage xatosi",
+      error,
+      { appointmentId, type, clientId: appt.client.telegramId }
     );
   }
 

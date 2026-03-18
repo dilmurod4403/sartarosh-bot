@@ -1,6 +1,8 @@
 import "dotenv/config";
+import { Bot, Context } from "grammy";
 import { createBot } from "./bot";
 import { setBotInstance } from "./services/notifications";
+import { setAdminNotifierBot } from "./services/adminNotifier";
 import { startReminderJobs } from "./jobs/reminders";
 import { createServer } from "./api/server";
 
@@ -8,7 +10,10 @@ const token = process.env.BOT_TOKEN;
 if (!token) throw new Error("BOT_TOKEN is required in .env");
 
 const bot = createBot(token);
-setBotInstance(bot);
+// Bot<BotContext> ni Bot<Context> sifatida cast qilamiz — faqat .api ishlatiladi
+const botAsBase = bot as unknown as Bot<Context>;
+setBotInstance(botAsBase);
+setAdminNotifierBot(botAsBase);
 startReminderJobs();
 
 // API server

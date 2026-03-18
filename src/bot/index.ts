@@ -7,6 +7,8 @@ import { appointmentHandler } from "./handlers/appointment";
 import { myAppointmentsHandler } from "./handlers/myAppointments";
 import { settingsHandler } from "./handlers/settings";
 import { barberHandler } from "./handlers/barber";
+import logger from "../utils/logger";
+import { sendAdminAlert } from "../services/adminNotifier";
 
 export function createBot(token: string) {
   const bot = new Bot<BotContext>(token);
@@ -31,7 +33,23 @@ export function createBot(token: string) {
   bot.use(barberHandler);
 
   bot.catch((err) => {
-    console.error("Bot error:", err);
+    const ctx = err.ctx;
+    const context: Record<string, unknown> = {
+      update_id: ctx.update.update_id,
+      from_id: ctx.from?.id,
+      chat_id: ctx.chat?.id,
+    };
+
+    logger.error(
+      { context, error: err.error instanceof Error ? err.error.message : String(err.error) },
+      "Bot unhandled error"
+    );
+
+    void sendAdminAlert(
+      "Bot unhandled error",
+      err.error instanceof Error ? err.error : new Error(String(err.error)),
+      context
+    );
   });
 
   return bot;

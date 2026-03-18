@@ -15,7 +15,7 @@ export async function startHandler(ctx: BotContext) {
   if (user) {
     const role = user.salonUsers[0]?.role ?? Role.CLIENT;
     const lang = t(user.language);
-    await ctx.reply(lang.menu, { reply_markup: mainMenuKeyboard(lang, role) });
+    await ctx.reply(lang.menu(user.name), { reply_markup: mainMenuKeyboard(lang, role) });
     return;
   }
 
@@ -35,7 +35,7 @@ export function mainMenuKeyboard(lang: ReturnType<typeof t>, role: Role = Role.C
       .text(lang.btnMyAppointments)
       .text(lang.btnSettings);
   } else if (role === Role.BARBER) {
-    kb.text(lang.btnAdminPanel).row()
+    kb.text(lang.btnDashboard).row()
       .text(lang.btnMyAppointments).row()
       .text(lang.btnSchedule).row()
       .text(lang.btnSettings);

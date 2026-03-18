@@ -53,7 +53,7 @@ composer.hears([/📋/, /Mening zakazlarim/, /Мои записи/], async (ctx,
   }
 });
 
-// Zakazni bekor qilish
+// Zakazni bekor qilish — tasdiqlash so'rash
 composer.callbackQuery(/^myappt:cancel:(\d+)$/, async (ctx) => {
   const appointmentId = parseInt(ctx.match[1]);
   const telegramId = String(ctx.from!.id);
@@ -66,7 +66,7 @@ composer.callbackQuery(/^myappt:cancel:(\d+)$/, async (ctx) => {
   });
 
   if (!appt || appt.clientId !== user.id) {
-    await ctx.answerCallbackQuery("Zakaz topilmadi");
+    await ctx.answerCallbackQuery(lang.noAppointmentFound);
     return;
   }
 
@@ -78,6 +78,31 @@ composer.callbackQuery(/^myappt:cancel:(\d+)$/, async (ctx) => {
     return;
   }
 
+  // Show confirmation
+  const keyboard = new InlineKeyboard()
+    .text(lang.yes, `myappt:cancelconfirm:${appointmentId}`)
+    .text(lang.no, `myappt:cancelabort`);
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(lang.confirmCancel, { reply_markup: keyboard });
+});
+
+// Zakazni haqiqatda bekor qilish
+composer.callbackQuery(/^myappt:cancelconfirm:(\d+)$/, async (ctx) => {
+  const appointmentId = parseInt(ctx.match[1]);
+  const telegramId = String(ctx.from!.id);
+  const user = await prisma.user.findUnique({ where: { telegramId } });
+  if (!user) return;
+  const lang = t(user.language);
+
+  const appt = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+  });
+
+  if (!appt || appt.clientId !== user.id) {
+    await ctx.answerCallbackQuery(lang.noAppointmentFound);
+    return;
+  }
+
   await prisma.appointment.update({
     where: { id: appointmentId },
     data: { status: AppointmentStatus.CANCELLED, cancelReason: "Mijoz tomonidan bekor qilindi" },
@@ -85,6 +110,12 @@ composer.callbackQuery(/^myappt:cancel:(\d+)$/, async (ctx) => {
 
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(lang.cancelSuccess);
+});
+
+// Bekor qilishdan voz kechish
+composer.callbackQuery("myappt:cancelabort", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.deleteMessage();
 });
 
 // Sartarosh taklif qilgan yangi vaqtni tasdiqlash/rad etish
@@ -103,7 +134,7 @@ composer.callbackQuery(/^myappt:reschedule:(accept|decline):(\d+)$/, async (ctx)
     });
     await notifyBarberRescheduleAccepted(appointmentId);
     await ctx.answerCallbackQuery();
-    await ctx.editMessageText("✅ Yangi vaqt tasdiqlandi!");
+    await ctx.editMessageText(lang.rescheduleAccepted);
   } else {
     await prisma.appointment.update({
       where: { id: appointmentId },

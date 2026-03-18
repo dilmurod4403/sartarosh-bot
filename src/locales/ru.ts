@@ -1,5 +1,5 @@
 export const ru = {
-  welcome: "Привет! Добро пожаловать в бот барбершопа 💈\nВведите ваше имя:",
+  welcome: "Привет! Добро пожаловать в бот барбершопа 💈\nВведите ваше имя (оно будет видно барберу):",
   askPhone: "Отправьте ваш номер телефона 📱",
   shareContact: "📱 Поделиться контактом",
   registered: "Регистрация завершена! Добро пожаловать 🎉",
@@ -9,7 +9,7 @@ export const ru = {
   chooseTime: "Выберите свободное время:",
   confirmAppointment: (barber: string, date: string, time: string) =>
     `✅ Подтвердить запись?\n\n💈 Барбер: ${barber}\n📅 Дата: ${date}\n🕐 Время: ${time}`,
-  appointmentCreated: "Запись отправлена! Ожидайте подтверждения барбера ⏳",
+  appointmentCreated: "Запись отправлена! Ожидайте подтверждения барбера ⏳\n\n📋 Чтобы просмотреть записи — нажмите «Мои записи».",
   appointmentConfirmed: (date: string, time: string) =>
     `✅ Ваша запись подтверждена!\nЖдём вас ${date} в ${time} 💈`,
   appointmentCancelled: (reason: string) =>
@@ -33,11 +33,29 @@ export const ru = {
   no: "❌ Нет",
   chooseLanguage: "Tilni tanlang / Выберите язык:",
   settingsSaved: "Настройки сохранены ✅",
-  menu: "Главное меню",
+  menu: (name: string) => `Привет, ${name}! 👋 Что хотите сделать?`,
   btnNewAppointment: "📅 Записаться",
   btnMyAppointments: "📋 Мои записи",
   btnSettings: "⚙️ Настройки",
   btnAdminPanel: "🛠 Admin panel",
+  btnDashboard: "📊 Панель управления",
   btnSchedule: "🗓 Мой график",
   btnMenu: "🏠 Главное меню",
+  noBarbers: "Барберов пока нет",
+  noBarberInSalon: "В этом салоне нет барберов",
+  scheduleTitle: "Ваш график. Нажмите день, чтобы изменить:",
+  scheduleEditPrompt: (day: string, status: string) => `${day}: ${status}\n\nЧто хотите изменить?`,
+  zakazConfirmed: (name: string, date: string, time: string) => `✅ Запись подтверждена — ${name}, ${date} ${time}`,
+  selectNewDay: "Выберите новый день:",
+  selectNewTime: "Выберите новое время:",
+  zakazDeclined: (name: string) => `❌ Запись отклонена — ${name}`,
+  noAppointmentFound: "Запись не найдена",
+  rescheduleAccepted: "✅ Новое время подтверждено!",
+  openAdminPanel: "Нажмите кнопку, чтобы открыть панель управления:",
+  confirmCancel: "Вы хотите отменить запись?",
+  backToBarbers: "⬅️ Выбрать другого барбера",
+  days: {
+    MONDAY: "Понедельник", TUESDAY: "Вторник", WEDNESDAY: "Среда",
+    THURSDAY: "Четверг", FRIDAY: "Пятница", SATURDAY: "Суббота", SUNDAY: "Воскресенье",
+  },
 };

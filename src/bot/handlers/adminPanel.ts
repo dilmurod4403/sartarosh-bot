@@ -1,14 +1,20 @@
 import { Composer, InlineKeyboard } from "grammy";
 import { BotContext } from "../types";
+import prisma from "../../utils/prisma";
+import { t } from "../../locales";
 
 const composer = new Composer<BotContext>();
 
-composer.hears([/🛠/, /Admin panel/], async (ctx) => {
-  const webappUrl = process.env.WEBAPP_URL!;
+composer.hears([/🛠 Admin panel/, /📊 Boshqaruv paneli/, /📊 Панель управления/], async (ctx) => {
+  const telegramId = String(ctx.from!.id);
+  const user = await prisma.user.findUnique({ where: { telegramId } });
+  if (!user) return;
+  const lang = t(user.language);
 
+  const webappUrl = process.env.WEBAPP_URL!;
   const keyboard = new InlineKeyboard().webApp("🛠 Admin panelni ochish", webappUrl);
 
-  await ctx.reply("Admin panelni ochish uchun tugmani bosing:", {
+  await ctx.reply(lang.openAdminPanel, {
     reply_markup: keyboard,
   });
 });

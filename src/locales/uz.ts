@@ -1,5 +1,5 @@
 export const uz = {
-  welcome: "Salom! Sartaroshxona botiga xush kelibsiz 💈\nIsmingizni kiriting:",
+  welcome: "Salom! Sartaroshxona botiga xush kelibsiz 💈\nIsmingizni kiriting (bu sartaroshga ko'rsatiladi):",
   askPhone: "Telefon raqamingizni yuboring 📱",
   shareContact: "📱 Kontaktni ulashish",
   registered: "Ro'yxatdan o'tdingiz! Xush kelibsiz 🎉",
@@ -9,7 +9,7 @@ export const uz = {
   chooseTime: "Bo'sh vaqtni tanlang:",
   confirmAppointment: (barber: string, date: string, time: string) =>
     `✅ Zakazni tasdiqlaysizmi?\n\n💈 Sartarosh: ${barber}\n📅 Sana: ${date}\n🕐 Vaqt: ${time}`,
-  appointmentCreated: "Zakazingiz yuborildi! Sartarosh tasdiqlashini kuting ⏳",
+  appointmentCreated: "Zakazingiz yuborildi! Sartarosh tasdiqlashini kuting ⏳\n\n📋 Zakazlaringizni ko'rish uchun — \"Mening zakazlarim\" tugmasini bosing.",
   appointmentConfirmed: (date: string, time: string) =>
     `✅ Zakazingiz tasdiqlandi!\n📅 ${date} soat ${time} da kutamiz 💈`,
   appointmentCancelled: (reason: string) =>
@@ -33,11 +33,29 @@ export const uz = {
   no: "❌ Yo'q",
   chooseLanguage: "Tilni tanlang / Выберите язык:",
   settingsSaved: "Sozlamalar saqlandi ✅",
-  menu: "Bosh menyu",
+  menu: (name: string) => `Salom, ${name}! 👋 Nima qilmoqchisiz?`,
   btnNewAppointment: "📅 Navbat olish",
   btnMyAppointments: "📋 Mening zakazlarim",
   btnSettings: "⚙️ Sozlamalar",
   btnAdminPanel: "🛠 Admin panel",
+  btnDashboard: "📊 Boshqaruv paneli",
   btnSchedule: "🗓 Mening jadvalim",
   btnMenu: "🏠 Bosh menyu",
+  noBarbers: "Hozircha sartaroshlar yo'q",
+  noBarberInSalon: "Bu salonda sartarosh yo'q",
+  scheduleTitle: "Jadvalingiz. Kunni bosib o'zgartiring:",
+  scheduleEditPrompt: (day: string, status: string) => `${day}: ${status}\n\nNimani o'zgartirmoqchisiz?`,
+  zakazConfirmed: (name: string, date: string, time: string) => `✅ Zakaz tasdiqlandi — ${name}, ${date} ${time}`,
+  selectNewDay: "Yangi kun tanlang:",
+  selectNewTime: "Yangi vaqt tanlang:",
+  zakazDeclined: (name: string) => `❌ Zakaz rad etildi — ${name}`,
+  noAppointmentFound: "Zakaz topilmadi",
+  rescheduleAccepted: "✅ Yangi vaqt tasdiqlandi!",
+  openAdminPanel: "Admin panelni ochish uchun tugmani bosing:",
+  confirmCancel: "Zakazni bekor qilmoqchimisiz?",
+  backToBarbers: "⬅️ Boshqa sartarosh tanlash",
+  days: {
+    MONDAY: "Dushanba", TUESDAY: "Seshanba", WEDNESDAY: "Chorshanba",
+    THURSDAY: "Payshanba", FRIDAY: "Juma", SATURDAY: "Shanba", SUNDAY: "Yakshanba",
+  },
 };

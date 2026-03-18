@@ -66,20 +66,17 @@ composer.hears([/🗓/, /Mening jadvalim/, /Мой график/], async (ctx) =
   });
   if (!user || user.salonUsers[0]?.role !== "BARBER" || !user.barberProfile) return;
 
+  const lang = t(user.language);
   const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
-  const dayNames: Record<string, string> = {
-    MONDAY: "Dushanba", TUESDAY: "Seshanba", WEDNESDAY: "Chorshanba",
-    THURSDAY: "Payshanba", FRIDAY: "Juma", SATURDAY: "Shanba", SUNDAY: "Yakshanba",
-  };
 
   const keyboard = new InlineKeyboard();
   days.forEach((day) => {
     const schedule = user.barberProfile!.schedules.find((s) => s.dayOfWeek === day as any);
     const status = schedule?.isDayOff === false ? `${schedule.startTime}-${schedule.endTime}` : "Dam olish";
-    keyboard.text(`${dayNames[day]}: ${status}`, `sched:day:${day}`).row();
+    keyboard.text(`${lang.days[day as keyof typeof lang.days]}: ${status}`, `sched:day:${day}`).row();
   });
 
-  await ctx.reply("Jadvalingiz. Kunni bosib o'zgartiring:", { reply_markup: keyboard });
+  await ctx.reply(lang.scheduleTitle, { reply_markup: keyboard });
 });
 
 // Kun tanlash — dam olish/ish kuni toggle
@@ -92,11 +89,8 @@ composer.callbackQuery(/^sched:day:(.+)$/, async (ctx) => {
   });
   if (!user?.barberProfile) return;
 
+  const lang = t(user.language);
   const schedule = user.barberProfile.schedules.find((s) => s.dayOfWeek === dayOfWeek as any);
-  const dayNames: Record<string, string> = {
-    MONDAY: "Dushanba", TUESDAY: "Seshanba", WEDNESDAY: "Chorshanba",
-    THURSDAY: "Payshanba", FRIDAY: "Juma", SATURDAY: "Shanba", SUNDAY: "Yakshanba",
-  };
 
   const keyboard = new InlineKeyboard()
     .text("✅ Ish kuni", `sched:setwork:${dayOfWeek}`).row()
@@ -107,9 +101,11 @@ composer.callbackQuery(/^sched:day:(.+)$/, async (ctx) => {
     ? `${schedule.startTime} — ${schedule.endTime}`
     : "Dam olish";
 
+  const dayName = lang.days[dayOfWeek as keyof typeof lang.days] ?? dayOfWeek;
+
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(
-    `${dayNames[dayOfWeek]}: ${currentStatus}\n\nNimani o'zgartirmoqchisiz?`,
+    lang.scheduleEditPrompt(dayName, currentStatus),
     { reply_markup: keyboard }
   );
 });
@@ -257,6 +253,19 @@ composer.callbackQuery(/^barber:confirm:(\d+)$/, async (ctx) => {
     return;
   }
 
+  // Ownership check
+  const telegramId = String(ctx.from!.id);
+  const barberUser = await prisma.user.findUnique({
+    where: { telegramId },
+    include: { barberProfile: true },
+  });
+  if (!barberUser?.barberProfile || barberUser.barberProfile.id !== appt.barberId) {
+    await ctx.answerCallbackQuery("Ruxsat yo'q");
+    return;
+  }
+
+  const lang = t(barberUser.language);
+
   await prisma.appointment.update({
     where: { id: appointmentId },
     data: { status: AppointmentStatus.CONFIRMED },
@@ -274,7 +283,7 @@ composer.callbackQuery(/^barber:confirm:(\d+)$/, async (ctx) => {
 
   await ctx.answerCallbackQuery("✅ Tasdiqlandi");
   await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() });
-  await ctx.reply(`✅ Zakaz tasdiqlandi — ${appt.client.name}, ${date} ${time}`);
+  await ctx.reply(lang.zakazConfirmed(appt.client.name, date, time));
 });
 
 // Vaqtni o'zgartirish — barber yangi slot tanlaydi
@@ -290,6 +299,19 @@ composer.callbackQuery(/^barber:reschedule:(\d+)$/, async (ctx) => {
 
   if (!appt) return;
 
+  // Ownership check
+  const telegramId = String(ctx.from!.id);
+  const barberUser = await prisma.user.findUnique({
+    where: { telegramId },
+    include: { barberProfile: true },
+  });
+  if (!barberUser?.barberProfile || barberUser.barberProfile.id !== appt.barberId) {
+    await ctx.answerCallbackQuery("Ruxsat yo'q");
+    return;
+  }
+
+  const lang = t(barberUser.language);
+
   const { getAvailableDays } = await import("../../services/slots");
   const days = await getAvailableDays(appt.barberId);
 
@@ -300,7 +322,7 @@ composer.callbackQuery(/^barber:reschedule:(\d+)$/, async (ctx) => {
   });
 
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText("Yangi kun tanlang:", { reply_markup: keyboard });
+  await ctx.editMessageText(lang.selectNewDay, { reply_markup: keyboard });
 });
 
 composer.callbackQuery(/^barber:newday:(\d+):(.+)$/, async (ctx) => {
@@ -314,6 +336,13 @@ composer.callbackQuery(/^barber:newday:(\d+):(.+)$/, async (ctx) => {
 
   if (!appt) return;
 
+  const telegramId = String(ctx.from!.id);
+  const barberUser = await prisma.user.findUnique({
+    where: { telegramId },
+    include: { barberProfile: true },
+  });
+  const lang = t(barberUser?.language ?? "UZ" as any);
+
   const { getAvailableSlots } = await import("../../services/slots");
   const slots = await getAvailableSlots(appt.barberId, date);
 
@@ -325,7 +354,7 @@ composer.callbackQuery(/^barber:newday:(\d+):(.+)$/, async (ctx) => {
   });
 
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText("Yangi vaqt tanlang:", { reply_markup: keyboard });
+  await ctx.editMessageText(lang.selectNewTime, { reply_markup: keyboard });
 });
 
 composer.callbackQuery(/^barber:newtime:(\d+):([\d-]+):([\d-]+)$/, async (ctx) => {
@@ -379,6 +408,19 @@ composer.callbackQuery(/^barber:decline:(\d+)$/, async (ctx) => {
 
   if (!appt) return;
 
+  // Ownership check
+  const telegramId = String(ctx.from!.id);
+  const barberUser = await prisma.user.findUnique({
+    where: { telegramId },
+    include: { barberProfile: true },
+  });
+  if (!barberUser?.barberProfile || barberUser.barberProfile.id !== appt.barberId) {
+    await ctx.answerCallbackQuery("Ruxsat yo'q");
+    return;
+  }
+
+  const lang = t(barberUser.language);
+
   await prisma.appointment.update({
     where: { id: appointmentId },
     data: {
@@ -395,7 +437,7 @@ composer.callbackQuery(/^barber:decline:(\d+)$/, async (ctx) => {
 
   await ctx.answerCallbackQuery("❌ Rad etildi");
   await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() });
-  await ctx.reply(`❌ Zakaz rad etildi — ${appt.client.name}`);
+  await ctx.reply(lang.zakazDeclined(appt.client.name));
 });
 
 export const barberHandler = composer;

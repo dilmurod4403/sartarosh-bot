@@ -94,10 +94,11 @@ export async function appointmentRoutes(app: FastifyInstance) {
     return slots;
   });
 
-  // Bugungi statistika
+  // Statistika (sana bo'yicha filtrlash imkoni bilan)
   app.get("/appointments/stats", async (req, reply) => {
     const user = req.dbUser;
     const role = user.salonUsers[0]?.role;
+    const { date } = req.query as { date?: string };
 
     let barberId: number | undefined;
     let salonId: number | undefined;
@@ -109,11 +110,19 @@ export async function appointmentRoutes(app: FastifyInstance) {
       salonId = user.salonUsers[0]?.salonId;
     }
 
-    const today = dayjs().startOf("day").toDate();
-    const endOfToday = dayjs().endOf("day").toDate();
+    let startOfPeriod: Date;
+    let endOfPeriod: Date;
+
+    if (date) {
+      startOfPeriod = dayjs(date).startOf("day").toDate();
+      endOfPeriod = dayjs(date).endOf("day").toDate();
+    } else {
+      startOfPeriod = dayjs().startOf("day").toDate();
+      endOfPeriod = dayjs().endOf("day").toDate();
+    }
 
     const where: any = {
-      startTime: { gte: today, lte: endOfToday },
+      startTime: { gte: startOfPeriod, lte: endOfPeriod },
     };
     if (barberId) where.barberId = barberId;
     if (salonId) where.barber = { salonId };

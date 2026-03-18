@@ -16,7 +16,7 @@ async function showSalons(ctx: any, lang: ReturnType<typeof t>, telegramId: stri
   });
 
   if (salons.length === 0) {
-    await ctx.reply("Hozircha sartaroshlar yo'q");
+    await ctx.reply(lang.noBarbers);
     return;
   }
 
@@ -43,7 +43,7 @@ async function showBarbers(ctx: any, lang: ReturnType<typeof t>, telegramId: str
   });
 
   if (barbers.length === 0) {
-    const text = "Bu salonda sartarosh yo'q";
+    const text = lang.noBarberInSalon;
     edit ? await ctx.editMessageText(text) : await ctx.reply(text);
     return;
   }
@@ -120,7 +120,8 @@ composer.callbackQuery(/^appt:barber:(\d+)$/, async (ctx) => {
 
   if (days.length === 0) {
     await ctx.answerCallbackQuery();
-    await ctx.editMessageText(lang.noSlots);
+    const keyboard = new InlineKeyboard().text(lang.backToBarbers, "appt:back:barbers");
+    await ctx.editMessageText(lang.noSlots, { reply_markup: keyboard });
     return;
   }
 

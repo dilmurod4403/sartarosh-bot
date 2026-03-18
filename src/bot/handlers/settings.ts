@@ -34,7 +34,7 @@ composer.callbackQuery(/^settings:lang:(UZ|RU)$/, async (ctx) => {
   const l = t(user.language);
   const role = user.salonUsers[0]?.role;
   await ctx.editMessageText(l.settingsSaved);
-  await ctx.reply(l.menu, { reply_markup: mainMenuKeyboard(l, role) });
+  await ctx.reply(l.menu(user.name), { reply_markup: mainMenuKeyboard(l, role) });
 });
 
 export const settingsHandler = composer;

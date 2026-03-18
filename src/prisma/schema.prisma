@@ -1,0 +1,127 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CLIENT
+  BARBER
+  ADMIN
+}
+
+enum Language {
+  UZ
+  RU
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  RESCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model Salon {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  barbers Barber[]
+  users   SalonUser[]
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  telegramId String   @unique
+  name       String
+  phone      String?
+  language   Language @default(UZ)
+  createdAt  DateTime @default(now())
+
+  barberProfile Barber?
+  appointments  Appointment[]
+  salonUsers    SalonUser[]
+}
+
+model SalonUser {
+  id      Int  @id @default(autoincrement())
+  userId  Int
+  salonId Int
+  role    Role @default(CLIENT)
+
+  user  User  @relation(fields: [userId], references: [id])
+  salon Salon @relation(fields: [salonId], references: [id])
+
+  @@unique([userId, salonId])
+}
+
+model Barber {
+  id            Int     @id @default(autoincrement())
+  userId        Int     @unique
+  salonId       Int
+  slotDuration  Int     @default(30) // daqiqada
+  isActive      Boolean @default(true)
+
+  user         User              @relation(fields: [userId], references: [id])
+  salon        Salon             @relation(fields: [salonId], references: [id])
+  schedules    BarberSchedule[]
+  appointments Appointment[]
+}
+
+model BarberSchedule {
+  id        Int       @id @default(autoincrement())
+  barberId  Int
+  dayOfWeek DayOfWeek
+  startTime String    // "09:00"
+  endTime   String    // "18:00"
+  breakStart String?  // "13:00"
+  breakEnd   String?  // "14:00"
+  isDayOff  Boolean   @default(false)
+
+  barber Barber @relation(fields: [barberId], references: [id])
+
+  @@unique([barberId, dayOfWeek])
+}
+
+model Appointment {
+  id          Int               @id @default(autoincrement())
+  clientId    Int
+  barberId    Int
+  startTime   DateTime
+  endTime     DateTime
+  status      AppointmentStatus @default(PENDING)
+  cancelReason String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  client        User           @relation(fields: [clientId], references: [id])
+  barber        Barber         @relation(fields: [barberId], references: [id])
+  notifications Notification[]
+}
+
+model Notification {
+  id            Int      @id @default(autoincrement())
+  appointmentId Int
+  type          String   // NEW_APPOINTMENT, CONFIRMED, CANCELLED, REMINDER_1H, REMINDER_24H, RESCHEDULED
+  sentAt        DateTime @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+}

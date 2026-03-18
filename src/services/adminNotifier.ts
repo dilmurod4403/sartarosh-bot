@@ -7,6 +7,16 @@ let botInstance: Bot<Context> | null = null;
 const recentAlerts = new Map<string, number>();
 const DEDUP_WINDOW_MS = 60_000;
 
+// Har 5 daqiqada 60 soniyadan eski yozuvlarni tozalash
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, ts] of recentAlerts) {
+    if (now - ts > DEDUP_WINDOW_MS) {
+      recentAlerts.delete(key);
+    }
+  }
+}, 5 * 60_000).unref();
+
 export function setAdminNotifierBot(bot: Bot<Context>): void {
   botInstance = bot;
 }

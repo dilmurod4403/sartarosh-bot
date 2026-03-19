@@ -7,8 +7,10 @@ const composer = new Composer<BotContext>();
 
 composer.hears([/🛠 Admin panel/, /📊 Boshqaruv paneli/, /📊 Панель управления/], async (ctx) => {
   const telegramId = String(ctx.from!.id);
-  const user = await prisma.user.findUnique({ where: { telegramId } });
+  const user = await prisma.user.findUnique({ where: { telegramId }, include: { salonUsers: true } });
   if (!user) return;
+  const role = user.salonUsers[0]?.role;
+  if (role !== "ADMIN" && role !== "BARBER") return;
   const lang = t(user.language);
 
   const webappUrl = process.env.WEBAPP_URL!;

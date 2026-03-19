@@ -9,7 +9,7 @@ import { AppointmentStatus } from "../../generated/prisma";
 const composer = new Composer<BotContext>();
 
 // Barber o'z zakazlarini ko'rish
-composer.hears([/📋/, /Mening zakazlarim/, /Мои записи/], async (ctx) => {
+composer.hears(["📋 Mening zakazlarim", "📋 Мои записи"], async (ctx) => {
   const telegramId = String(ctx.from!.id);
   const user = await prisma.user.findUnique({
     where: { telegramId },

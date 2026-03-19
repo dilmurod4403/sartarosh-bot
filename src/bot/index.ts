@@ -25,6 +25,11 @@ export function createBot(token: string) {
   bot.command("start", startHandler);
   bot.command("menu", startHandler);
   bot.hears(["🏠 Bosh menyu", "🏠 Главное меню"], startHandler);
+  bot.command("reset", async (ctx) => {
+    ctx.session.step = "idle";
+    ctx.session.data = {};
+    await ctx.reply("Sessiya tiklandi ✅");
+  });
   bot.use(registrationHandler);
   bot.use(adminPanelHandler);
   bot.use(appointmentHandler);

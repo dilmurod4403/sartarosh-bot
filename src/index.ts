@@ -31,6 +31,7 @@ bot.start({
     await bot.api.setMyCommands([
       { command: "start", description: "Botni ishga tushirish" },
       { command: "menu", description: "🏠 Bosh menyuga qaytish" },
+      { command: "reset", description: "Sessiyani tiklash (muammo bo'lsa)" },
     ]);
   },
 });

@@ -44,7 +44,7 @@ export default function AppointmentsPage({ role }: { role: string }) {
     setLoading(true);
     const [apptRes, statsRes] = await Promise.all([
       getAppointments(selectedDate ? { date: selectedDate } : {}),
-      getStats(),
+      getStats(selectedDate ? { date: selectedDate } : undefined),
     ]);
     setAppointments(apptRes.data);
     setStats(statsRes.data);

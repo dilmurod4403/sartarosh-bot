@@ -26,7 +26,7 @@ export const getSalon = () => api.get("/salon");
 // Zakazlar
 export const getAppointments = (params?: { date?: string; status?: string }) =>
   api.get("/appointments", { params });
-export const getStats = () => api.get("/appointments/stats");
+export const getStats = (params?: { date?: string }) => api.get("/appointments/stats", { params });
 export const updateAppointment = (id: number, data: object) =>
   api.patch(`/appointments/${id}`, data);
 

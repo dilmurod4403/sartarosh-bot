@@ -54,6 +54,10 @@ export const uz = {
   openAdminPanel: "Admin panelni ochish uchun tugmani bosing:",
   confirmCancel: "Zakazni bekor qilmoqchimisiz?",
   backToBarbers: "⬅️ Boshqa sartarosh tanlash",
+  dayOffSet: (day: string) => `🚫 ${day} — Dam olish kuni qilindi`,
+  dayOffLabel: "Dam olish",
+  selectWorkTime: (start: string, end: string) => `Ish vaqtini tanlang:\nBoshlanish: ${start}\nTugash: ${end}`,
+  rescheduleProposed: (date: string, time: string) => `🔄 Yangi vaqt taklif qilindi: ${date} ${time}. Mijoz javobini kutmoqda.`,
   days: {
     MONDAY: "Dushanba", TUESDAY: "Seshanba", WEDNESDAY: "Chorshanba",
     THURSDAY: "Payshanba", FRIDAY: "Juma", SATURDAY: "Shanba", SUNDAY: "Yakshanba",

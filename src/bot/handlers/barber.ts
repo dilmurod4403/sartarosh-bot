@@ -72,7 +72,7 @@ composer.hears([/🗓/, /Mening jadvalim/, /Мой график/], async (ctx) =
   const keyboard = new InlineKeyboard();
   days.forEach((day) => {
     const schedule = user.barberProfile!.schedules.find((s) => s.dayOfWeek === day as any);
-    const status = schedule?.isDayOff === false ? `${schedule.startTime}-${schedule.endTime}` : "Dam olish";
+    const status = schedule?.isDayOff === false ? `${schedule.startTime}-${schedule.endTime}` : lang.dayOffLabel;
     keyboard.text(`${lang.days[day as keyof typeof lang.days]}: ${status}`, `sched:day:${day}`).row();
   });
 
@@ -99,7 +99,7 @@ composer.callbackQuery(/^sched:day:(.+)$/, async (ctx) => {
 
   const currentStatus = schedule?.isDayOff === false
     ? `${schedule.startTime} — ${schedule.endTime}`
-    : "Dam olish";
+    : lang.dayOffLabel;
 
   const dayName = lang.days[dayOfWeek as keyof typeof lang.days] ?? dayOfWeek;
 
@@ -126,8 +126,9 @@ composer.callbackQuery(/^sched:setoff:(.+)$/, async (ctx) => {
     create: { barberId: user.barberProfile.id, dayOfWeek: dayOfWeek as any, startTime: "09:00", endTime: "18:00", isDayOff: true },
   });
 
-  await ctx.answerCallbackQuery("🚫 Dam olish kuni qilindi");
-  await ctx.editMessageText(`🚫 ${dayOfWeek} — Dam olish kuni qilindi`);
+  const lang = t(user.language);
+  await ctx.answerCallbackQuery(lang.dayOffSet(dayOfWeek));
+  await ctx.editMessageText(lang.dayOffSet(dayOfWeek));
 });
 
 // Ish kuni qilish — vaqt so'rash
@@ -158,9 +159,11 @@ composer.callbackQuery(/^sched:setwork:(.+)$/, async (ctx) => {
   ctx.session.data.schedStart = start;
   ctx.session.data.schedEnd = end;
 
+  const lang = t(user.language);
+
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(
-    `Ish vaqtini tanlang:\nBoshlanish: ${start}\nTugash: ${end}`,
+    lang.selectWorkTime(start, end),
     { reply_markup: keyboard }
   );
 });
@@ -173,6 +176,10 @@ composer.callbackQuery(/^sched:start:([^:]+):(.+)$/, async (ctx) => {
 
   ctx.session.data.schedStart = startTime;
 
+  const telegramId = String(ctx.from!.id);
+  const user = await prisma.user.findUnique({ where: { telegramId } });
+  const lang = t(user?.language ?? "UZ" as any);
+
   const timeOptions = ["08:00", "09:00", "10:00"];
   const endOptions = ["17:00", "18:00", "19:00", "20:00"];
   const keyboard = new InlineKeyboard();
@@ -183,7 +190,7 @@ composer.callbackQuery(/^sched:start:([^:]+):(.+)$/, async (ctx) => {
 
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(
-    `Ish vaqtini tanlang:\nBoshlanish: ${startTime}\nTugash: ${endTime}`,
+    lang.selectWorkTime(startTime, endTime),
     { reply_markup: keyboard }
   );
 });
@@ -196,6 +203,10 @@ composer.callbackQuery(/^sched:end:([^:]+):(.+)$/, async (ctx) => {
 
   ctx.session.data.schedEnd = endTime;
 
+  const telegramId = String(ctx.from!.id);
+  const user = await prisma.user.findUnique({ where: { telegramId } });
+  const lang = t(user?.language ?? "UZ" as any);
+
   const timeOptions = ["08:00", "09:00", "10:00"];
   const endOptions = ["17:00", "18:00", "19:00", "20:00"];
   const keyboard = new InlineKeyboard();
@@ -206,7 +217,7 @@ composer.callbackQuery(/^sched:end:([^:]+):(.+)$/, async (ctx) => {
 
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(
-    `Ish vaqtini tanlang:\nBoshlanish: ${startTime}\nTugash: ${endTime}`,
+    lang.selectWorkTime(startTime, endTime),
     { reply_markup: keyboard }
   );
 });
@@ -341,7 +352,11 @@ composer.callbackQuery(/^barber:newday:(\d+):(.+)$/, async (ctx) => {
     where: { telegramId },
     include: { barberProfile: true },
   });
-  const lang = t(barberUser?.language ?? "UZ" as any);
+  if (!barberUser?.barberProfile || barberUser.barberProfile.id !== appt.barberId) {
+    await ctx.answerCallbackQuery("Ruxsat yo'q");
+    return;
+  }
+  const lang = t(barberUser.language);
 
   const { getAvailableSlots } = await import("../../services/slots");
   const slots = await getAvailableSlots(appt.barberId, date);
@@ -369,6 +384,17 @@ composer.callbackQuery(/^barber:newtime:(\d+):([\d-]+):([\d-]+)$/, async (ctx) =
 
   if (!appt) return;
 
+  // Ownership check
+  const telegramId = String(ctx.from!.id);
+  const barberUser = await prisma.user.findUnique({
+    where: { telegramId },
+    include: { barberProfile: true },
+  });
+  if (!barberUser?.barberProfile || barberUser.barberProfile.id !== appt.barberId) {
+    await ctx.answerCallbackQuery("Ruxsat yo'q");
+    return;
+  }
+
   const newStart = dayjs(`${date} ${time}`).toDate();
   const newEnd = dayjs(newStart).add(appt.barber.slotDuration, "minute").toDate();
 
@@ -393,8 +419,9 @@ composer.callbackQuery(/^barber:newtime:(\d+):([\d-]+):([\d-]+)$/, async (ctx) =
     { reply_markup: keyboard }
   );
 
+  const barberLang = t(barberUser.language);
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText(`🔄 Yangi vaqt taklif qilindi: ${date} ${time}. Mijoz javobini kutmoqda.`);
+  await ctx.editMessageText(barberLang.rescheduleProposed(date, time));
 });
 
 // Rad etish

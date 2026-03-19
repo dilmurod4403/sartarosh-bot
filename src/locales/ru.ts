@@ -54,6 +54,10 @@ export const ru = {
   openAdminPanel: "Нажмите кнопку, чтобы открыть панель управления:",
   confirmCancel: "Вы хотите отменить запись?",
   backToBarbers: "⬅️ Выбрать другого барбера",
+  dayOffSet: (day: string) => `🚫 ${day} — Выходной день установлен`,
+  dayOffLabel: "Выходной",
+  selectWorkTime: (start: string, end: string) => `Выберите рабочее время:\nНачало: ${start}\nКонец: ${end}`,
+  rescheduleProposed: (date: string, time: string) => `🔄 Предложено новое время: ${date} ${time}. Ожидаем ответа клиента.`,
   days: {
     MONDAY: "Понедельник", TUESDAY: "Вторник", WEDNESDAY: "Среда",
     THURSDAY: "Четверг", FRIDAY: "Пятница", SATURDAY: "Суббота", SUNDAY: "Воскресенье",

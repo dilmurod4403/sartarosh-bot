@@ -1,10 +1,18 @@
 import "dotenv/config";
+import { ProxyAgent, setGlobalDispatcher } from "undici";
 import { Bot, Context } from "grammy";
 import { createBot } from "./bot";
 import { setBotInstance } from "./services/notifications";
 import { setAdminNotifierBot } from "./services/adminNotifier";
 import { startReminderJobs } from "./jobs/reminders";
 import { createServer } from "./api/server";
+
+// Proxy orqali Telegram API ga ulanish
+const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+if (proxyUrl) {
+  setGlobalDispatcher(new ProxyAgent(proxyUrl));
+  console.log(`🔗 Proxy: ${proxyUrl}`);
+}
 
 const token = process.env.BOT_TOKEN;
 if (!token) throw new Error("BOT_TOKEN is required in .env");
